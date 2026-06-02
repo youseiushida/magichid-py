@@ -17,6 +17,7 @@ from .simulation import FlightSim
 from .gaming_device import GamingDevice
 from .sport import GolfClub
 from .keyboard import Keyboard, KeycodeError
+from .medical import MedicalUltrasound
 from .monitor import Monitor
 from .mouse import Mouse, MouseButton
 from .msr import MSR
@@ -44,7 +45,7 @@ __all__ = [
     "GamingDevice",
     "GolfClub",
     "Haptics",
-    "Keyboard", "KeycodeError", "Monitor", "Mouse", "MouseButton", "MSR", "PanelButton",
+    "Keyboard", "KeycodeError", "MedicalUltrasound", "Monitor", "Mouse", "MouseButton", "MSR", "PanelButton",
     "PID",
     "Scale",
     "SoCControl",
