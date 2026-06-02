@@ -1,4 +1,4 @@
-# magichid
+# MagicHID-py
 
 Python client for the [MagicHID](https://github.com/youseiushida/magichid). 
 
