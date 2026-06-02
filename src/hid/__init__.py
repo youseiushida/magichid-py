@@ -16,12 +16,14 @@ from ._client import IHidClient
 from ._tables.keycode import Keycode
 from .universal import (
     ButtonPanel, ConsumerControl, ConsumerUsage,
+    Digitizer,
     Gamepad, GamepadButton, GamepadDPad,
     Keyboard, KeycodeError, Mouse, MouseButton, PanelButton,
 )
 
 __all__ = [
     "ButtonPanel", "ConsumerControl", "ConsumerUsage",
+    "Digitizer",
     "Gamepad", "GamepadButton", "GamepadDPad",
     "IHidClient",
     "Keycode",
