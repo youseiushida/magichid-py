@@ -1,59 +1,60 @@
-# magichid-py
+# magichid
 
-A Python client (the **"brain"**) for the [MagicHID](../magichid) transparent USB-HID
-bridge. The ESP32-S3 firmware is a dumb relay — all protocol logic lives here.
-
-* **sans-I/O core** — pure state machine, no threads, no serial dependency.
-  Same core serves blocking and (future) asyncio edges.
-* Wire codec verified **byte-for-byte** against `spec/protocol_vectors.txt`.
-* Full session: handshake, reliable delivery (SEQ + ACK, retransmit-same-SEQ,
-  dedup window), fire-and-forget, `HOST_EVENT` callbacks, identity switch.
-* Report helpers for the `universal` (keyboard/mouse/…) and `horipad` (Switch) profiles,
-  with machine-enforced **relative-reports-must-be-reliable** via the `RELATIVE` flag.
+Python client for the [MagicHID](https://github.com/youseiushida/magichid). 
 
 ## Install
 
-```bash
-uv sync            # or: pip install -e ".[dev]"
+```
+pip install magichid
 ```
 
-Runtime dependency: `pyserial`. The contract lives in `spec/` (treat as read-only truth);
-see [`spec/PROTOCOL.md`](spec/PROTOCOL.md).
-
-## Quickstart
+## Quickstart -- high-level API
 
 ```python
 from core.io.blocking import BlockingClient
-from core.reports import KEYBOARD
-from examples._keyboard import keyboard_report, char_to_keycode
+from core.reports import ReportTable
+from hid import Keyboard, Keycode, Mouse, MouseButton, Digitizer
 
 with BlockingClient("COM5") as c:
-    c.handshake(timeout=10)    # PING until STATUS(MOUNTED|READY); asserts proto==2
-    mod, key = char_to_keycode("a")
-    c.request(0x01, bytes([KEYBOARD]) + keyboard_report([key], modifier=mod))
-    # release automatically on exit (RELEASE_ALL)
+    c.handshake()
+
+    # Keyboard
+    kb = Keyboard(c, ReportTable.universal())
+    kb.tap(Keycode.A)
+    kb.type_text("Hello world")
+
+    # Mouse
+    mouse = Mouse(c, ReportTable.universal())
+    mouse.move(x=10, y=-5)
+    mouse.click(MouseButton.LEFT)
+
+    # Touch digitizer
+    dig = Digitizer(c, ReportTable.universal())
+    dig.down(x=0.5, y=0.5)
+    dig.move(x=0.6, y=0.5)
+    dig.up()
 ```
 
-Run the bundled demo:
+35 device classes in `hid.universal`: keyboard, mouse, gamepad, flight sim, VR headset,
+golf club, consumer control, digitizer, haptics, force feedback, unicode input, eye tracker,
+accelerometer, medical ultrasound, braille display, lamp array, monitor, UPS, battery,
+barcode scanner, scale, MSR, camera, arcade I/O, gaming device, FIDO authenticator, and more.
 
-```bash
-python examples/hello_keyboard.py --port COM5 --char a
-```
+Horipad (Nintendo Switch, profile 1) in `hid.horipad`.
 
-## Tests
-
-```bash
-pytest        # 60 tests: vectors + connection + io + reports
-```
-
-## Architecture
+## Quickstart -- CLI
 
 ```
-src/core/
-  codec.py        CRC-16/CCITT-FALSE + COBS + build/parse_frame (vectors-locked)
-  wire.py         Protocol constants (spec/protocol.yaml → code)
-  events.py       Typed events the core emits (never silent drops)
-  connection.py   Pure sans-I/O state machine (clock-injected, testable)
-  io/blocking.py  Thin single-threaded edge over pyserial
-  reports.py      ReportTable (CAPS+reports.json) + keyboard/mouse/horipad builders
+magichid --port COM5 keyboard type --text "Hello world"
+magichid --port COM5 mouse move --x 10 --y -5 --json
+magichid --port COM5 digitizer down --x 0.5 --y 0.5
+magichid --port COM5 unicode type --text "Hello (U+1F389)"
+magichid --port COM5 horipad press --button A --json
+magichid --port COM5 soc firmware-chunk --firmware-id 1 --offset 0 --payload-file chunk.bin
+
+# Agent introspection
+magichid agent-context | jq .commands.mouse.actions
 ```
+
+The CLI is non-interactive by default. `--json` emits structured stdout. Errors go to stderr
+with enumerated valid values. `agent-context` provides a versioned machine-readable schema.

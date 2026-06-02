@@ -29,6 +29,50 @@ _LED_KANA = 1 << 4
 _MOD_MAP: dict[Keycode, int] = {k: 1 << (k - 0xE0) for k in Keycode if k.is_modifier}
 
 
+# -- ASCII → (shift, Keycode) mapping (US keyboard layout) -------------------
+
+_ASCII_TO_KEYCODE: dict[str, tuple[bool, "Keycode"]] = {}
+
+def _init_ascii_map() -> None:
+    """Populate _ASCII_TO_KEYCODE once at import time."""
+    if _ASCII_TO_KEYCODE:
+        return
+    k = Keycode
+    pairs = [
+        # lowercase
+        *[(c, (False, getattr(k, c.upper()))) for c in "abcdefghijklmnopqrstuvwxyz"],
+        # uppercase
+        *[(c, (True, getattr(k, c))) for c in "ABCDEFGHIJKLMNOPQRSTUVWXYZ"],
+        # digits
+        ("0", (False, k.ZERO)), ("1", (False, k.ONE)), ("2", (False, k.TWO)),
+        ("3", (False, k.THREE)), ("4", (False, k.FOUR)), ("5", (False, k.FIVE)),
+        ("6", (False, k.SIX)), ("7", (False, k.SEVEN)), ("8", (False, k.EIGHT)),
+        ("9", (False, k.NINE)),
+        # whitespace
+        (" ", (False, k.SPACEBAR)), ("\n", (False, k.RETURN)), ("\t", (False, k.TAB)),
+        # unshifted punctuation
+        ("-", (False, k.MINUS)), ("=", (False, k.EQUAL)),
+        ("[", (False, k.LEFT_BRACKET)), ("]", (False, k.RIGHT_BRACKET)),
+        ("\\", (False, k.BACKSLASH)), (";", (False, k.SEMICOLON)),
+        ("'", (False, k.APOSTROPHE)), ("`", (False, k.GRAVE)),
+        (",", (False, k.COMMA)), (".", (False, k.PERIOD)), ("/", (False, k.SLASH)),
+        # shifted punctuation
+        ("!", (True, k.ONE)), ("@", (True, k.TWO)), ("#", (True, k.THREE)),
+        ("$", (True, k.FOUR)), ("%", (True, k.FIVE)), ("^", (True, k.SIX)),
+        ("&", (True, k.SEVEN)), ("*", (True, k.EIGHT)),
+        ("(", (True, k.NINE)), (")", (True, k.ZERO)),
+        ("_", (True, k.MINUS)), ("+", (True, k.EQUAL)),
+        ("{", (True, k.LEFT_BRACKET)), ("}", (True, k.RIGHT_BRACKET)),
+        ("|", (True, k.BACKSLASH)), (":", (True, k.SEMICOLON)),
+        ('"', (True, k.APOSTROPHE)), ("~", (True, k.GRAVE)),
+        ("<", (True, k.COMMA)), (">", (True, k.PERIOD)), ("?", (True, k.SLASH)),
+    ]
+    _ASCII_TO_KEYCODE.update(pairs)
+
+_init_ascii_map()
+del _init_ascii_map
+
+
 class Keyboard:
     """Boot-keyboard state machine with 6KRO management and LED tracking.
 
@@ -162,6 +206,30 @@ class Keyboard:
         self._modifier = 0
         self._keys.clear()
         self._flush()
+
+    def type_text(self, text: str) -> int:
+        """Type an ASCII string as sequential keystrokes (US layout).
+
+        Returns the number of characters typed.  Unsupported characters are
+        skipped with a message to stderr.
+        """
+        count = 0
+        import sys as _sys
+        for ch in text:
+            entry = _ASCII_TO_KEYCODE.get(ch)
+            if entry is None:
+                print(f"warning: skipping unsupported character {ch!r}",
+                      file=_sys.stderr)
+                continue
+            shift, kc = entry
+            if shift:
+                self.press(Keycode.LEFT_SHIFT)
+                self.tap(kc)
+                self.release(Keycode.LEFT_SHIFT)
+            else:
+                self.tap(kc)
+            count += 1
+        return count
 
     # -- batch context -------------------------------------------------------- #
 
