@@ -12,6 +12,8 @@ from .consumer_control import ConsumerControl, ConsumerUsage
 from .digitizer import Digitizer
 from .fido import FIDO
 from .gamepad import Gamepad
+from .simulation import FlightSim
+from .gaming_device import GamingDevice
 from .keyboard import Keyboard, KeycodeError
 from .monitor import Monitor
 from .mouse import Mouse, MouseButton
@@ -30,7 +32,9 @@ __all__ = [
     "ConsumerControl", "ConsumerUsage",
     "Digitizer",
     "FIDO",
+    "FlightSim",
     "Gamepad",
+    "GamingDevice",
     "Keyboard", "KeycodeError", "Monitor", "Mouse", "MouseButton", "MSR", "PanelButton",
     "SoCControl",
     "Telephony",
