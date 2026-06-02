@@ -12,6 +12,7 @@ from .consumer_control import ConsumerControl, ConsumerUsage
 from .digitizer import Digitizer
 from .fido import FIDO
 from .gamepad import Gamepad
+from .haptics import Haptics
 from .simulation import FlightSim
 from .gaming_device import GamingDevice
 from .sport import GolfClub
@@ -39,6 +40,7 @@ __all__ = [
     "Gamepad",
     "GamingDevice",
     "GolfClub",
+    "Haptics",
     "Keyboard", "KeycodeError", "Monitor", "Mouse", "MouseButton", "MSR", "PanelButton",
     "PID",
     "SoCControl",
