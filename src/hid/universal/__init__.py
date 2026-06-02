@@ -22,6 +22,7 @@ from .mouse import Mouse, MouseButton
 from .msr import MSR
 from .pid import PID
 from .power_device import UPS
+from .scale import Scale
 from .sensor import Accelerometer
 from .soc_control import SoCControl
 from .telephony import Telephony
@@ -45,6 +46,7 @@ __all__ = [
     "Haptics",
     "Keyboard", "KeycodeError", "Monitor", "Mouse", "MouseButton", "MSR", "PanelButton",
     "PID",
+    "Scale",
     "SoCControl",
     "Telephony",
     "UnicodeInput",
