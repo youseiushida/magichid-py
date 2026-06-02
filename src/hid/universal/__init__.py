@@ -22,6 +22,7 @@ from .mouse import Mouse, MouseButton
 from .msr import MSR
 from .pid import PID
 from .power_device import UPS
+from .sensor import Accelerometer
 from .soc_control import SoCControl
 from .telephony import Telephony
 from .unicode_input import UnicodeInput
@@ -29,6 +30,7 @@ from .vesa_vc import VESAVC
 from .vr_controls import VRHeadset
 
 __all__ = [
+    "Accelerometer",
     "ArcadeIO",
     "AuxDisplay",
     "BarcodeScanner",

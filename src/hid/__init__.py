@@ -15,6 +15,7 @@ from __future__ import annotations
 from ._client import IHidClient
 from ._tables.keycode import Keycode
 from .universal import (
+    Accelerometer,
     ArcadeIO,
     AuxDisplay,
     BarcodeScanner,
@@ -38,6 +39,7 @@ from .universal import (
 )
 
 __all__ = [
+    "Accelerometer",
     "ArcadeIO",
     "AuxDisplay",
     "BarcodeScanner",
