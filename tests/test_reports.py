@@ -47,6 +47,18 @@ def test_pad_rejects_non_sendable():
         ReportTable.universal().pad_input(8, b"")  # LED is output-only
 
 
+def test_pad_feature():
+    t = ReportTable.universal()
+    # SoC (ID 17) has feat_len=41
+    assert t.pad_feature(17, b"\x01\x02") == b"\x01\x02" + b"\x00" * 39
+    assert len(t.pad_feature(17, b"")) == 41
+
+
+def test_pad_feature_rejects_non_feature():
+    with pytest.raises(ValueError):
+        ReportTable.universal().pad_feature(7, b"")  # Keyboard has feat_len=0
+
+
 def test_from_caps():
     from core.events import CapsReceived, ReportCap
     caps = CapsReceived(seq=1, entries=(

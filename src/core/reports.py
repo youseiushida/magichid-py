@@ -135,3 +135,16 @@ class ReportTable:
         if len(data) > s.in_len:
             raise ValueError(f"report {rid} data {len(data)} > in_len {s.in_len}")
         return bytes(data) + b"\x00" * (s.in_len - len(data))
+
+    def pad_feature(self, rid: int, data: bytes) -> bytes:
+        """Zero-pad *data* up to the report's ``feat_len``.
+
+        Raises :class:`ValueError` if *data* exceeds ``feat_len`` or the report
+        has no FEATURE.
+        """
+        s = self._by_id[rid]
+        if s.feat_len == 0:
+            raise ValueError(f"report {rid} ({s.name}) has no FEATURE")
+        if len(data) > s.feat_len:
+            raise ValueError(f"report {rid} data {len(data)} > feat_len {s.feat_len}")
+        return bytes(data) + b"\x00" * (s.feat_len - len(data))
