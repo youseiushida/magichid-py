@@ -10,6 +10,7 @@ from .digitizer import Digitizer
 from .gamepad import Gamepad, GamepadButton, GamepadDPad
 from .keyboard import Keyboard, KeycodeError
 from .mouse import Mouse, MouseButton
+from .telephony import Telephony, TelephonyUsage
 from .unicode_input import UnicodeInput
 
 __all__ = [
@@ -18,5 +19,6 @@ __all__ = [
     "Digitizer",
     "Gamepad", "GamepadButton", "GamepadDPad",
     "Keyboard", "KeycodeError", "Mouse", "MouseButton", "PanelButton",
+    "Telephony", "TelephonyUsage",
     "UnicodeInput",
 ]

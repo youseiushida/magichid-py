@@ -20,6 +20,7 @@ from .universal import (
     Digitizer,
     Gamepad, GamepadButton, GamepadDPad,
     Keyboard, KeycodeError, Mouse, MouseButton, PanelButton,
+    Telephony, TelephonyUsage,
     UnicodeInput,
 )
 
@@ -33,5 +34,6 @@ __all__ = [
     "Keyboard", "KeycodeError",
     "Mouse", "MouseButton",
     "PanelButton",
+    "Telephony", "TelephonyUsage",
     "UnicodeInput",
 ]
