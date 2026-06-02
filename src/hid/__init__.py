@@ -14,13 +14,15 @@ from __future__ import annotations
 
 from ._client import IHidClient
 from ._tables.keycode import Keycode
-from .universal import Keyboard, KeycodeError, Mouse, MouseButton
+from .universal import ButtonPanel, Keyboard, KeycodeError, Mouse, MouseButton, PanelButton
 
 __all__ = [
+    "ButtonPanel",
     "IHidClient",
     "Keycode",
     "Keyboard",
     "KeycodeError",
     "Mouse",
     "MouseButton",
+    "PanelButton",
 ]
