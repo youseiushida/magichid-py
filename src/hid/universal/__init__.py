@@ -23,6 +23,7 @@ from .soc_control import SoCControl
 from .telephony import Telephony
 from .unicode_input import UnicodeInput
 from .vesa_vc import VESAVC
+from .vr_controls import VRHeadset
 
 __all__ = [
     "ArcadeIO",
@@ -41,4 +42,5 @@ __all__ = [
     "UnicodeInput",
     "UPS",
     "VESAVC",
+    "VRHeadset",
 ]

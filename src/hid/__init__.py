@@ -31,6 +31,7 @@ from .universal import (
     UnicodeInput,
     UPS,
     VESAVC,
+    VRHeadset,
 )
 
 __all__ = [
@@ -56,4 +57,5 @@ __all__ = [
     "UnicodeInput",
     "UPS",
     "VESAVC",
+    "VRHeadset",
 ]
