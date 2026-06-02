@@ -3,6 +3,8 @@
 These are the "well-known" HID reports from the MagicHID universal USB descriptor.
 """
 
+from .arcade import ArcadeIO
+from .barcode_scanner import BarcodeScanner
 from .button_panel import ButtonPanel, PanelButton
 from .camera_control import CameraControl
 from .consumer_control import ConsumerControl, ConsumerUsage
@@ -19,6 +21,8 @@ from .unicode_input import UnicodeInput
 from .vesa_vc import VESAVC
 
 __all__ = [
+    "ArcadeIO",
+    "BarcodeScanner",
     "ButtonPanel", "CameraControl",
     "ConsumerControl", "ConsumerUsage",
     "Digitizer",
