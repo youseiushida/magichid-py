@@ -14,6 +14,7 @@ from .fido import FIDO
 from .gamepad import Gamepad
 from .simulation import FlightSim
 from .gaming_device import GamingDevice
+from .sport import GolfClub
 from .keyboard import Keyboard, KeycodeError
 from .monitor import Monitor
 from .mouse import Mouse, MouseButton
@@ -36,6 +37,7 @@ __all__ = [
     "FlightSim",
     "Gamepad",
     "GamingDevice",
+    "GolfClub",
     "Keyboard", "KeycodeError", "Monitor", "Mouse", "MouseButton", "MSR", "PanelButton",
     "SoCControl",
     "Telephony",
