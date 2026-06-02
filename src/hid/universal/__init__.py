@@ -4,5 +4,6 @@ These are the "well-known" HID reports from the MagicHID universal USB descripto
 """
 
 from .keyboard import Keyboard, KeycodeError
+from .mouse import Mouse, MouseButton
 
-__all__ = ["Keyboard", "KeycodeError"]
+__all__ = ["Keyboard", "KeycodeError", "Mouse", "MouseButton"]
