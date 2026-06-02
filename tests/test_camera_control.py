@@ -1,10 +1,10 @@
-"""Tests for CameraControl class (1-byte trigger, report ID 32)."""
+"""Tests for CameraControl class (1-byte flags, report ID 32)."""
 
 from __future__ import annotations
 
 import pytest
 
-from hid import IHidClient, CameraAction, CameraControl
+from hid import IHidClient, CameraControl
 from core.reports import ReportTable
 
 
@@ -35,47 +35,27 @@ def cam(client: _FakeClient, table: ReportTable) -> CameraControl:
     return CameraControl(client, table)
 
 
-# -- basic triggers ----------------------------------------------------------
-
-
-def test_trigger_autofocus(cam: CameraControl, client: _FakeClient) -> None:
-    cam.trigger(CameraAction.AUTO_FOCUS)
+def test_auto_focus(cam: CameraControl, client: _FakeClient) -> None:
+    cam.auto_focus()
     p = client.last[1]
     assert p[0] == 32       # report ID
-    assert p[1] == 0x20     # AUTO_FOCUS
+    assert p[1] == 0x01     # auto_focus bit
 
 
-def test_trigger_shutter(cam: CameraControl, client: _FakeClient) -> None:
-    cam.trigger(CameraAction.SHUTTER)
-    assert client.last[1][1] == 0x21
-
-
-# -- payload structure -------------------------------------------------------
+def test_shutter(cam: CameraControl, client: _FakeClient) -> None:
+    cam.shutter()
+    assert client.last[1][1] == 0x02  # shutter bit
 
 
 def test_payload_length(cam: CameraControl, client: _FakeClient) -> None:
-    cam.trigger(CameraAction.SHUTTER)
-    assert len(client.last[1]) == 1 + 1  # report_id + 1 byte
+    cam.shutter()
+    assert len(client.last[1]) == 1 + 1
 
 
-# -- reliable flag -----------------------------------------------------------
-
-
-def test_camera_not_reliable(cam: CameraControl, client: _FakeClient) -> None:
-    cam.trigger(CameraAction.AUTO_FOCUS)
+def test_not_reliable(cam: CameraControl, client: _FakeClient) -> None:
+    cam.auto_focus()
     _, _, reliable = client.last
     assert reliable is False
-
-
-# -- CameraAction enum -------------------------------------------------------
-
-
-def test_action_values() -> None:
-    assert CameraAction.AUTO_FOCUS == 0x20
-    assert CameraAction.SHUTTER == 0x21
-
-
-# -- IHidClient protocol -----------------------------------------------------
 
 
 def test_fake_client_satisfies_protocol() -> None:

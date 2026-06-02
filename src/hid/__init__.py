@@ -15,29 +15,31 @@ from __future__ import annotations
 from ._client import IHidClient
 from ._tables.keycode import Keycode
 from .universal import (
-    ButtonPanel, CameraAction, CameraControl,
+    ButtonPanel, CameraControl,
     ConsumerControl, ConsumerUsage,
     Digitizer,
     FIDO,
-    Gamepad, GamepadButton, GamepadDPad,
+    Gamepad,
     Keyboard, KeycodeError, Mouse, MouseButton, PanelButton,
     SoCControl,
-    Telephony, TelephonyUsage,
+    Telephony,
     UnicodeInput,
+    UPS,
 )
 
 __all__ = [
-    "ButtonPanel", "CameraAction", "CameraControl",
+    "ButtonPanel", "CameraControl",
     "ConsumerControl", "ConsumerUsage",
     "Digitizer",
     "FIDO",
-    "Gamepad", "GamepadButton", "GamepadDPad",
+    "Gamepad",
     "IHidClient",
     "Keycode",
     "Keyboard", "KeycodeError",
     "Mouse", "MouseButton",
     "PanelButton",
     "SoCControl",
-    "Telephony", "TelephonyUsage",
+    "Telephony",
     "UnicodeInput",
+    "UPS",
 ]

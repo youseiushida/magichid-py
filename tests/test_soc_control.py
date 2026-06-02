@@ -1,4 +1,4 @@
-"""Tests for SoCControl class (41-byte FEATURE report, report ID 17)."""
+"""Tests for SoCControl class (firmware update, 41-byte FEATURE, report ID 17)."""
 
 from __future__ import annotations
 
@@ -36,46 +36,40 @@ def soc(client: _FakeClient, table: ReportTable) -> SoCControl:
     return SoCControl(client, table)
 
 
-# -- basic set_feature -------------------------------------------------------
-
-
-def test_set_feature_sends_payload(soc: SoCControl, client: _FakeClient) -> None:
-    soc.set_feature(bytes([0xAA, 0xBB]))
-    assert client.last[0] == MsgType.SET_FEATURE  # msg type
+def test_send_chunk(soc: SoCControl, client: _FakeClient) -> None:
+    soc.set_firmware_chunk(firmware_id=1, offset=0, payload=b"\xAA" * 32, is_last=True)
+    assert client.last[0] == MsgType.SET_FEATURE
     p = client.last[1]
-    assert p[0] == 17       # report ID
-    assert p[1] == 0xAA     # data byte 0
-    assert p[2] == 0xBB     # data byte 1
+    assert p[0] == 17               # report ID
+    # firmware_id: 1 → [0x01, 0x00]
+    assert p[1] == 0x01 and p[2] == 0x00
+    # offset: 0 → [0x00, 0x00, 0x00, 0x00]
+    assert p[3:7] == b"\x00" * 4
+    # payload_size: 32 → [0x20, 0x00]
+    assert p[7] == 0x20 and p[8] == 0x00
+    # payload: 32 bytes of 0xAA
+    assert p[9:41] == b"\xAA" * 32
+    # last flag: 1
+    assert p[41] == 0x01
 
 
-def test_set_feature_padded_to_41(soc: SoCControl, client: _FakeClient) -> None:
-    soc.set_feature(b"\x01")
-    assert len(client.last[1]) == 1 + 41  # report_id + feat_len
-
-
-def test_set_feature_trailing_zeros(soc: SoCControl, client: _FakeClient) -> None:
-    soc.set_feature(b"\xFF\xFF")
+def test_padded_payload(soc: SoCControl, client: _FakeClient) -> None:
+    soc.set_firmware_chunk(firmware_id=0, offset=1024, payload=b"\xFF")
     p = client.last[1]
-    assert p[1] == 0xFF and p[2] == 0xFF   # data
-    assert all(b == 0 for b in p[3:42])     # rest zero-padded
+    assert p[9] == 0xFF               # first payload byte
+    assert p[10] == 0x00              # padded
+    assert len(p) == 1 + 41           # report_id + feat_len
 
 
-def test_set_feature_reliable(soc: SoCControl, client: _FakeClient) -> None:
-    soc.set_feature(b"\x01")
+def test_rejects_oversize_payload(soc: SoCControl) -> None:
+    with pytest.raises(ValueError):
+        soc.set_firmware_chunk(payload=b"\x00" * 33)
+
+
+def test_reliable(soc: SoCControl, client: _FakeClient) -> None:
+    soc.set_firmware_chunk()
     _, _, reliable = client.last
-    assert reliable is True  # FEATURE → reliable
-
-
-# -- error: exceeds feat_len -------------------------------------------------
-
-
-def test_set_feature_rejects_overlong(table: ReportTable, client: _FakeClient) -> None:
-    soc = SoCControl(client, table)
-    with pytest.raises(ValueError, match="feat_len"):
-        soc.set_feature(b"\x00" * 42)
-
-
-# -- IHidClient protocol -----------------------------------------------------
+    assert reliable is True
 
 
 def test_fake_client_satisfies_protocol() -> None:

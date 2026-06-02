@@ -66,7 +66,7 @@ def test_move_clamps_values(mouse: Mouse, client: _FakeClient) -> None:
     mouse.move(x=200, y=-200)
     p = client.last[1]
     assert _s8(p[2]) == 127
-    assert _s8(p[3]) == -128
+    assert _s8(p[3]) == -127
 
 
 # -- buttons -----------------------------------------------------------------

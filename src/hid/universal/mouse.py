@@ -149,8 +149,8 @@ class _HoldGuard:
 
 
 def _clamp_s8(v: int) -> int:
-    if v < -128:
-        return -128
+    if v < -127:
+        return -127
     if v > 127:
         return 127
     return v

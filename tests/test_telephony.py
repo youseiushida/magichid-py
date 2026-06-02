@@ -1,10 +1,10 @@
-"""Tests for Telephony class (2-byte report, telephony control + keypad)."""
+"""Tests for Telephony class (flags byte + keypad selector, report ID 11)."""
 
 from __future__ import annotations
 
 import pytest
 
-from hid import IHidClient, Telephony, TelephonyUsage
+from hid import IHidClient, Telephony
 from core.events import HostEventReceived
 from core.reports import ReportTable
 from core.wire import HidReportType
@@ -37,124 +37,98 @@ def tel(client: _FakeClient, table: ReportTable) -> Telephony:
     return Telephony(client, table)
 
 
-# -- press / release ---------------------------------------------------------
+# -- flags -------------------------------------------------------------------
 
 
-def test_press_sends_usage(tel: Telephony, client: _FakeClient) -> None:
-    tel.press(TelephonyUsage.HOOK_SWITCH)
-    assert tel.is_active
-    p = client.last[1]
-    assert p[0] == 11            # report ID
-    assert p[1] == 0x20          # HOOK_SWITCH low
-    assert p[2] == 0x00          # high byte
+def test_hook_switch(tel: Telephony, client: _FakeClient) -> None:
+    tel.hook_switch = True
+    tel.send()
+    assert client.last[1][1] == 0x01
+    assert tel.hook_switch
 
 
-def test_release_sends_zero(tel: Telephony, client: _FakeClient) -> None:
-    tel.press(TelephonyUsage.HOLD)
-    tel.release()
-    assert not tel.is_active
-    assert client.last[1][1] == 0x00 and client.last[1][2] == 0x00
+def test_multiple_flags(tel: Telephony, client: _FakeClient) -> None:
+    tel.hook_switch = True
+    tel.mute = True
+    tel.send()
+    assert client.last[1][1] == 0x09  # bits 0 and 3
 
 
-def test_tap(tel: Telephony, client: _FakeClient) -> None:
-    n = len(client.calls)
-    tel.tap(TelephonyUsage.REDIAL)
-    assert len(client.calls) == n + 2
-    assert not tel.is_active
-
-
-def test_release_when_idle_noop(tel: Telephony, client: _FakeClient) -> None:
-    n = len(client.calls)
-    tel.release()
-    assert len(client.calls) == n
-
-
-def test_press_same_key_noop(tel: Telephony, client: _FakeClient) -> None:
-    tel.press(TelephonyUsage.MUTE)
-    n = len(client.calls)
-    tel.press(TelephonyUsage.MUTE)
-    assert len(client.calls) == n
-
-
-def test_press_new_key_replaces_old(tel: Telephony, client: _FakeClient) -> None:
-    tel.press(TelephonyUsage.HOOK_SWITCH)
-    tel.press(TelephonyUsage.SPEAKER_PHONE)
-    assert tel.current == 0x2B
+def test_flash_momentary(tel: Telephony, client: _FakeClient) -> None:
+    tel.flash = True
+    tel.send()
+    assert client.last[1][1] == 0x02
+    tel.flash = False
+    tel.send()
+    assert client.last[1][1] == 0x00
 
 
 # -- keypad ------------------------------------------------------------------
 
 
-def test_keypad_key(tel: Telephony, client: _FakeClient) -> None:
-    tel.tap(TelephonyUsage.KEY_5)
-    assert len(client.calls) == 2  # press + release
+def test_keypad_press(tel: Telephony, client: _FakeClient) -> None:
+    tel.keypad_press(5)
+    assert tel.keypad == 5
+    assert client.last[1][2] == 5  # byte 1 = keypad value
 
 
-def test_keypad_star_pound(tel: Telephony, client: _FakeClient) -> None:
-    tel.tap(TelephonyUsage.KEY_STAR)
-    assert client.calls[0][1][1] == 0xBA
+def test_keypad_zero_means_no_key(tel: Telephony) -> None:
+    assert tel.keypad == 0  # default: no key
 
 
-# -- payload structure -------------------------------------------------------
+def test_keypad_rejects_invalid(tel: Telephony) -> None:
+    with pytest.raises(ValueError):
+        tel.keypad_press(13)
 
 
-def test_payload_length(tel: Telephony, client: _FakeClient) -> None:
-    tel.press(TelephonyUsage.HOOK_SWITCH)
-    assert len(client.last[1]) == 1 + 2  # report_id + 2 bytes
+# -- OUTPUT LED state --------------------------------------------------------
 
 
-# -- reliable flag -----------------------------------------------------------
+def test_off_hook_led(tel: Telephony) -> None:
+    ev = HostEventReceived(report_id=11, report_type=HidReportType.OUTPUT, data=bytes([0x01]))
+    tel.handle_host_event(ev)
+    assert tel.off_hook
 
 
-def test_telephony_not_reliable(tel: Telephony, client: _FakeClient) -> None:
-    tel.press(TelephonyUsage.REDIAL)
-    _, _, reliable = client.last
-    assert reliable is False
+def test_ring_led(tel: Telephony) -> None:
+    ev = HostEventReceived(report_id=11, report_type=HidReportType.OUTPUT, data=bytes([0x02]))
+    tel.handle_host_event(ev)
+    assert tel.ring
 
 
-# -- LED message indicator ---------------------------------------------------
-
-
-def test_led_byte_initial(tel: Telephony) -> None:
-    assert tel.led_byte == 0
-
-
-def test_message_waiting_initial(tel: Telephony) -> None:
-    assert not tel.message_waiting
-
-
-def test_message_waiting_from_host(tel: Telephony) -> None:
-    ev = HostEventReceived(
-        report_id=11,
-        report_type=HidReportType.OUTPUT,
-        data=bytes([0x01]),
-    )
+def test_message_waiting_led(tel: Telephony) -> None:
+    ev = HostEventReceived(report_id=11, report_type=HidReportType.OUTPUT, data=bytes([0x04]))
     tel.handle_host_event(ev)
     assert tel.message_waiting
 
 
-def test_message_waiting_ignores_other_reports(tel: Telephony) -> None:
-    ev = HostEventReceived(
-        report_id=99,
-        report_type=HidReportType.OUTPUT,
-        data=bytes([0xFF]),
-    )
+def test_handle_host_event_ignores_input(tel: Telephony) -> None:
+    ev = HostEventReceived(report_id=11, report_type=HidReportType.INPUT, data=bytes([0xFF]))
     tel.handle_host_event(ev)
     assert not tel.message_waiting
 
 
-# -- TelephonyUsage values ---------------------------------------------------
+def test_handle_host_event_ignores_other_report(tel: Telephony) -> None:
+    ev = HostEventReceived(report_id=99, report_type=HidReportType.OUTPUT, data=bytes([0xFF]))
+    tel.handle_host_event(ev)
+    assert not tel.message_waiting
 
 
-def test_usage_values() -> None:
-    assert TelephonyUsage.HOOK_SWITCH == 0x20
-    assert TelephonyUsage.KEY_0 == 0xB0
-    assert TelephonyUsage.KEY_9 == 0xB9
-    assert TelephonyUsage.KEY_STAR == 0xBA
-    assert TelephonyUsage.KEY_POUND == 0xBB
+# -- payload -----------------------------------------------------------------
 
 
-# -- IHidClient protocol -----------------------------------------------------
+def test_payload_length(tel: Telephony, client: _FakeClient) -> None:
+    tel.send()
+    assert len(client.last[1]) == 1 + 2
+
+
+def test_reliable(tel: Telephony, client: _FakeClient) -> None:
+    tel.send()
+    _, _, reliable = client.last
+    assert reliable is False
+
+
+# -- protocol ----------------------------------------------------------------
 
 
 def test_fake_client_satisfies_protocol() -> None:

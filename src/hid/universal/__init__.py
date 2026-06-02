@@ -4,25 +4,27 @@ These are the "well-known" HID reports from the MagicHID universal USB descripto
 """
 
 from .button_panel import ButtonPanel, PanelButton
-from .camera_control import CameraAction, CameraControl
+from .camera_control import CameraControl
 from .consumer_control import ConsumerControl, ConsumerUsage
 from .digitizer import Digitizer
 from .fido import FIDO
-from .gamepad import Gamepad, GamepadButton, GamepadDPad
+from .gamepad import Gamepad
 from .keyboard import Keyboard, KeycodeError
 from .mouse import Mouse, MouseButton
+from .power_device import UPS
 from .soc_control import SoCControl
-from .telephony import Telephony, TelephonyUsage
+from .telephony import Telephony
 from .unicode_input import UnicodeInput
 
 __all__ = [
-    "ButtonPanel", "CameraAction", "CameraControl",
+    "ButtonPanel", "CameraControl",
     "ConsumerControl", "ConsumerUsage",
     "Digitizer",
     "FIDO",
-    "Gamepad", "GamepadButton", "GamepadDPad",
+    "Gamepad",
     "Keyboard", "KeycodeError", "Mouse", "MouseButton", "PanelButton",
     "SoCControl",
-    "Telephony", "TelephonyUsage",
+    "Telephony",
     "UnicodeInput",
+    "UPS",
 ]
