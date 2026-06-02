@@ -25,6 +25,7 @@ from .universal import (
     Telephony,
     UnicodeInput,
     UPS,
+    VESAVC,
 )
 
 __all__ = [
@@ -43,4 +44,5 @@ __all__ = [
     "Telephony",
     "UnicodeInput",
     "UPS",
+    "VESAVC",
 ]

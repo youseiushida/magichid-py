@@ -16,6 +16,7 @@ from .power_device import UPS
 from .soc_control import SoCControl
 from .telephony import Telephony
 from .unicode_input import UnicodeInput
+from .vesa_vc import VESAVC
 
 __all__ = [
     "ButtonPanel", "CameraControl",
@@ -28,4 +29,5 @@ __all__ = [
     "Telephony",
     "UnicodeInput",
     "UPS",
+    "VESAVC",
 ]
