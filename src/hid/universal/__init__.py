@@ -10,6 +10,7 @@ from .digitizer import Digitizer
 from .fido import FIDO
 from .gamepad import Gamepad
 from .keyboard import Keyboard, KeycodeError
+from .monitor import Monitor
 from .mouse import Mouse, MouseButton
 from .power_device import UPS
 from .soc_control import SoCControl
@@ -22,7 +23,7 @@ __all__ = [
     "Digitizer",
     "FIDO",
     "Gamepad",
-    "Keyboard", "KeycodeError", "Mouse", "MouseButton", "PanelButton",
+    "Keyboard", "KeycodeError", "Monitor", "Mouse", "MouseButton", "PanelButton",
     "SoCControl",
     "Telephony",
     "UnicodeInput",
