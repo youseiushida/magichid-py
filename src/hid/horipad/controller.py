@@ -160,6 +160,7 @@ class Horipad:
         self._ly = 0x80
         self._rx = 0x80
         self._ry = 0x80
+        self._dirty = True
         self._flush()
 
     def hold(self, *buttons: HoripadButton) -> _HoldGuard:
