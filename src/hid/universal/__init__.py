@@ -4,6 +4,7 @@ These are the "well-known" HID reports from the MagicHID universal USB descripto
 """
 
 from .arcade import ArcadeIO
+from .aux_display import AuxDisplay
 from .barcode_scanner import BarcodeScanner
 from .button_panel import ButtonPanel, PanelButton
 from .camera_control import CameraControl
@@ -23,6 +24,7 @@ from .vesa_vc import VESAVC
 
 __all__ = [
     "ArcadeIO",
+    "AuxDisplay",
     "BarcodeScanner",
     "ButtonPanel", "CameraControl",
     "ConsumerControl", "ConsumerUsage",

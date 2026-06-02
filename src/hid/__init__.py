@@ -16,6 +16,7 @@ from ._client import IHidClient
 from ._tables.keycode import Keycode
 from .universal import (
     ArcadeIO,
+    AuxDisplay,
     BarcodeScanner,
     ButtonPanel, CameraControl,
     ConsumerControl, ConsumerUsage,
@@ -32,6 +33,7 @@ from .universal import (
 
 __all__ = [
     "ArcadeIO",
+    "AuxDisplay",
     "BarcodeScanner",
     "ButtonPanel", "CameraControl",
     "ConsumerControl", "ConsumerUsage",
