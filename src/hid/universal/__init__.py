@@ -18,6 +18,7 @@ from .simulation import FlightSim
 from .gaming_device import GamingDevice
 from .sport import GolfClub
 from .keyboard import Keyboard, KeycodeError
+from .led import LED
 from .lighting import LampArray
 from .medical import MedicalUltrasound
 from .monitor import Monitor
@@ -48,7 +49,7 @@ __all__ = [
     "GamingDevice",
     "GolfClub",
     "Haptics",
-    "Keyboard", "KeycodeError", "LampArray", "MedicalUltrasound", "Monitor", "Mouse", "MouseButton", "MSR", "PanelButton",
+    "Keyboard", "KeycodeError", "LampArray", "LED", "MedicalUltrasound", "Monitor", "Mouse", "MouseButton", "MSR", "PanelButton",
     "PID",
     "Scale",
     "SoCControl",
