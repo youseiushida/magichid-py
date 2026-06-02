@@ -14,6 +14,7 @@ from .gamepad import Gamepad
 from .keyboard import Keyboard, KeycodeError
 from .monitor import Monitor
 from .mouse import Mouse, MouseButton
+from .msr import MSR
 from .power_device import UPS
 from .soc_control import SoCControl
 from .telephony import Telephony
@@ -28,7 +29,7 @@ __all__ = [
     "Digitizer",
     "FIDO",
     "Gamepad",
-    "Keyboard", "KeycodeError", "Monitor", "Mouse", "MouseButton", "PanelButton",
+    "Keyboard", "KeycodeError", "Monitor", "Mouse", "MouseButton", "MSR", "PanelButton",
     "SoCControl",
     "Telephony",
     "UnicodeInput",
