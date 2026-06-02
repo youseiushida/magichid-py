@@ -6,6 +6,7 @@ These are the "well-known" HID reports from the MagicHID universal USB descripto
 from .arcade import ArcadeIO
 from .aux_display import AuxDisplay
 from .barcode_scanner import BarcodeScanner
+from .braille import BrailleDisplay
 from .button_panel import ButtonPanel, PanelButton
 from .camera_control import CameraControl
 from .consumer_control import ConsumerControl, ConsumerUsage
@@ -36,6 +37,7 @@ __all__ = [
     "ArcadeIO",
     "AuxDisplay",
     "BarcodeScanner",
+    "BrailleDisplay",
     "ButtonPanel", "CameraControl",
     "ConsumerControl", "ConsumerUsage",
     "Digitizer",
