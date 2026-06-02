@@ -1,13 +1,13 @@
-"""Thin-edge integration tests over the FakeDevice (no hardware)."""
+﻿"""Thin-edge integration tests over the FakeDevice (no hardware)."""
 
 from __future__ import annotations
 
 import pytest
 
-from magichid import events as ev
-from magichid.connection import Connection
-from magichid.io.blocking import BlockingClient, BlockingError, ProtocolVersionError
-from magichid.wire import MsgType
+from core import events as ev
+from core.connection import Connection
+from core.io.blocking import BlockingClient, BlockingError, ProtocolVersionError
+from core.wire import MsgType
 
 from .fake_device import FakeDevice
 

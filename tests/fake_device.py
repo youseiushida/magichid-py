@@ -1,11 +1,11 @@
-"""In-process fake of the MagicHID device for edge testing (no hardware)."""
+﻿"""In-process fake of the MagicHID device for edge testing (no hardware)."""
 
 from __future__ import annotations
 
 import threading
 
-from magichid.codec import build_frame, parse_frame
-from magichid.wire import MsgType, NackReason, StatusFlag
+from core.codec import build_frame, parse_frame
+from core.wire import MsgType, NackReason, StatusFlag
 
 
 class FakeDevice:

@@ -34,7 +34,7 @@ KEYBOARD = 7   # in_len 8: [modifier][reserved][k1..k6]
 def _bundled_data() -> dict:
     """Load the bundled ``reports.json`` once and cache it."""
     return json.loads(
-        files("magichid").joinpath("reports.json").read_text(encoding="utf-8")
+        files("core").joinpath("reports.json").read_text(encoding="utf-8")
     )
 
 

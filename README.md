@@ -23,8 +23,9 @@ see [`spec/PROTOCOL.md`](spec/PROTOCOL.md).
 ## Quickstart
 
 ```python
-from magichid.io.blocking import BlockingClient
-from magichid.reports import KEYBOARD, keyboard_report, char_to_keycode
+from core.io.blocking import BlockingClient
+from core.reports import KEYBOARD
+from examples._keyboard import keyboard_report, char_to_keycode
 
 with BlockingClient("COM5") as c:
     c.handshake(timeout=10)    # PING until STATUS(MOUNTED|READY); asserts proto==2
@@ -48,7 +49,7 @@ pytest        # 60 tests: vectors + connection + io + reports
 ## Architecture
 
 ```
-src/magichid/
+src/core/
   codec.py        CRC-16/CCITT-FALSE + COBS + build/parse_frame (vectors-locked)
   wire.py         Protocol constants (spec/protocol.yaml → code)
   events.py       Typed events the core emits (never silent drops)

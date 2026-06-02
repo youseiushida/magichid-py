@@ -1,16 +1,16 @@
-"""Pure sans-I/O core tests — fake clock, zero I/O, zero threads."""
+﻿"""Pure sans-I/O core tests — fake clock, zero I/O, zero threads."""
 
 from __future__ import annotations
 
 import pytest
 
-from magichid.codec import build_frame
-from magichid.connection import Connection, Timers
-from magichid.events import (
+from core.codec import build_frame
+from core.connection import Connection, Timers
+from core.events import (
     Acknowledged, CapsReceived, FrameError, HostEventReceived, LogReceived,
     NackUnmatched, Rejected, ReportCap, StatusReceived, VersionMismatch,
 )
-from magichid.wire import MsgType, StatusFlag
+from core.wire import MsgType, StatusFlag
 
 
 class FakeClock:

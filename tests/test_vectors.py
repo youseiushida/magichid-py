@@ -1,4 +1,4 @@
-"""Conformance tests: every line of spec/protocol_vectors.txt must be reproduced
+﻿"""Conformance tests: every line of spec/protocol_vectors.txt must be reproduced
 byte-for-byte, plus a CRC-16/CCITT-FALSE known-answer test anchored to the world
 (crc16(b"123456789") == 0x29B1) that breaks the circularity.
 """
@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pytest
 
-from magichid.codec import build_frame, cobs_decode, cobs_encode, crc16, parse_frame
+from core.codec import build_frame, cobs_decode, cobs_encode, crc16, parse_frame
 
 _VECTORS = (Path(__file__).parent / "protocol_vectors.txt").read_text(encoding="utf-8")
 

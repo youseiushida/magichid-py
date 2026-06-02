@@ -1,9 +1,9 @@
-"""Convenience builders for boot-keyboard and mouse HID reports.
+﻿"""Convenience builders for boot-keyboard and mouse HID reports.
 
 These are *examples* of how to construct report payloads — they are not part
 of the protocol core.  Use them as-is, copy them, or replace them with your
 own builders for other profiles.  All they do is lay out bytes; the actual
-rules (size, relative/reliable) are enforced by :class:`magichid.reports.ReportTable`.
+rules (size, relative/reliable) are enforced by :class:`core.reports.ReportTable`.
 """
 
 from __future__ import annotations

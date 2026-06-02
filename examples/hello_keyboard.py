@@ -1,4 +1,4 @@
-"""Minimal end-to-end demo: type one character through the MagicHID bridge.
+﻿"""Minimal end-to-end demo: type one character through the MagicHID bridge.
 
 Flow (spec/PROTOCOL.md §6 recommended session)::
 
@@ -24,14 +24,14 @@ _ROOT = str(Path(__file__).resolve().parent.parent)
 sys.path.insert(0, _ROOT)
 sys.path.insert(0, _ROOT + "/src")
 
-from magichid.events import HostEventReceived         # noqa: E402
-from magichid.io.blocking import BlockingClient       # noqa: E402
-from magichid.reports import KEYBOARD                 # noqa: E402
+from core.events import HostEventReceived         # noqa: E402
+from core.io.blocking import BlockingClient       # noqa: E402
+from core.reports import KEYBOARD                 # noqa: E402
 from examples._keyboard import char_to_keycode, keyboard_report  # noqa: E402
 
 
 def main(argv: list[str] | None = None) -> int:
-    ap = argparse.ArgumentParser(description="Type one character via MagicHID.")
+    ap = argparse.ArgumentParser(description="Type one character via core.")
     ap.add_argument("--port", required=True, help="serial port (e.g. COM5)")
     ap.add_argument("--baud", type=int, default=1_000_000)
     ap.add_argument("--char", default="a", help="character to type")

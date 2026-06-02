@@ -1,10 +1,10 @@
-"""Core report table tests (ReportSpec, ReportTable, pad_input)."""
+﻿"""Core report table tests (ReportSpec, ReportTable, pad_input)."""
 
 from __future__ import annotations
 
 import pytest
 
-from magichid.reports import MOUSE, KEYBOARD, ReportTable
+from core.reports import MOUSE, KEYBOARD, ReportTable
 
 
 def test_universal_table():
@@ -48,7 +48,7 @@ def test_pad_rejects_non_sendable():
 
 
 def test_from_caps():
-    from magichid.events import CapsReceived, ReportCap
+    from core.events import CapsReceived, ReportCap
     caps = CapsReceived(seq=1, entries=(
         ReportCap(1, 5, 0, 0, 0x01),
         ReportCap(7, 8, 1, 0, 0x00),

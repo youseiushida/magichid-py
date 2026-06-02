@@ -24,8 +24,9 @@ uv sync            # または: pip install -e ".[dev]"
 ## クイックスタート
 
 ```python
-from magichid.io.blocking import BlockingClient
-from magichid.reports import KEYBOARD, keyboard_report, char_to_keycode
+from core.io.blocking import BlockingClient
+from core.reports import KEYBOARD
+from examples._keyboard import keyboard_report, char_to_keycode
 
 with BlockingClient("COM5") as c:
     c.handshake(timeout=10)    # PING を送り STATUS(MOUNTED|READY) を待つ。proto==2 を検証
@@ -49,7 +50,7 @@ pytest        # 60 テスト: vectors + connection + io + reports
 ## アーキテクチャ
 
 ```
-src/magichid/
+src/core/
   codec.py        CRC-16/CCITT-FALSE + COBS + build/parse_frame（vectorsでロック）
   wire.py         プロトコル定数（spec/protocol.yaml → コード）
   events.py       コアが発行する型付きイベント（沈黙ドロップなし）
