@@ -19,6 +19,7 @@ from .keyboard import Keyboard, KeycodeError
 from .monitor import Monitor
 from .mouse import Mouse, MouseButton
 from .msr import MSR
+from .pid import PID
 from .power_device import UPS
 from .soc_control import SoCControl
 from .telephony import Telephony
@@ -39,6 +40,7 @@ __all__ = [
     "GamingDevice",
     "GolfClub",
     "Keyboard", "KeycodeError", "Monitor", "Mouse", "MouseButton", "MSR", "PanelButton",
+    "PID",
     "SoCControl",
     "Telephony",
     "UnicodeInput",
