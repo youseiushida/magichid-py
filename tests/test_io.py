@@ -40,6 +40,37 @@ def test_handshake_version_mismatch():
             c.handshake(timeout=2.0)
 
 
+def test_handshake_no_session_reply_fails_fast():
+    """A device that never answers SESSION_OPEN (pre-v3 firmware / dead bridge)
+    must fail explicitly on the session step, not silently fall back to a
+    session-less handshake (which would reintroduce the cross-connection dedup
+    hazard). The session budget must also not consume the whole timeout."""
+    from core.io.blocking import CommandTimeout
+
+    dev = FakeDevice(); dev.support_session = False
+
+    class Clock:
+        def __init__(self): self.t = 0.0
+        def __call__(self): return self.t
+        def advance(self, dt): self.t += dt
+
+    clk = Clock()
+    with _client(dev, clock=clk, sleep=lambda _s: clk.advance(0.05)) as c:
+        # Drive the fake clock forward as the edge polls, so the bounded
+        # session_timeout elapses without real waiting.
+        orig_read = dev.read
+        def read_advancing(n):
+            clk.advance(0.02)
+            return orig_read(n)
+        dev.read = read_advancing
+        with pytest.raises(CommandTimeout) as ei:
+            c.handshake(timeout=5.0, session_timeout=0.5, ping_interval=0.1)
+        assert ei.value.kind == MsgType.SESSION_OPEN
+        # The device DID receive SESSION_OPEN frames (retransmitted), proving we
+        # tried — it just never replied.
+        assert any(t == MsgType.SESSION_OPEN for t, _, _ in dev.received)
+
+
 def test_request_acks():
     with _client() as c:
         c.handshake(timeout=2.0)

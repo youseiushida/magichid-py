@@ -51,6 +51,7 @@ class BlockingClient:
         self.conn = connection or Connection(clock=clock)
         self._inbox: list[ev.Event] = []
         self._failed: set[int] = set()
+        self.session_epoch: int | None = None   # set by handshake() via SESSION_OPEN
 
         if transport is not None:
             self._ser = transport
@@ -191,9 +192,30 @@ class BlockingClient:
                 raise CommandTimeout(seq, MsgType.GET_CAPS)
         raise CommandTimeout(seq, MsgType.GET_CAPS)
 
-    def handshake(self, *, timeout: float = 5.0, ping_interval: float = 0.2) -> ev.StatusReceived:
-        """PING until STATUS reports MOUNTED|READY; raise on version mismatch."""
+    def handshake(self, *, timeout: float = 5.0, ping_interval: float = 0.2,
+                  session_timeout: float = 1.0) -> ev.StatusReceived:
+        """Open a session, then PING until STATUS reports MOUNTED|READY.
+
+        Two distinct waits, each with its own budget:
+
+        1. SESSION_OPEN -> SESSION: an operator<->bridge round-trip the firmware
+           answers immediately, regardless of target-host mount state. It makes
+           the device mint a fresh epoch and clear its per-session SEQ dedup
+           window, so this client's SEQ counter (which restarts at 1 each
+           process) can't collide with a previous connection's remembered SEQs.
+           Bounded by ``session_timeout``; SESSION_OPEN is resent every
+           ``ping_interval`` (it is idempotent) until the SESSION reply arrives.
+           No reply within the budget means the bridge is dead or running
+           pre-v3 firmware -> raise (we do NOT silently fall back to a
+           session-less handshake, which would reintroduce the dedup hazard).
+
+        2. PING -> STATUS(MOUNTED|READY): waits for the *target host* to
+           enumerate the device, which can take seconds. Gets the remaining
+           budget after the session is established.
+        """
         deadline = self._clock() + timeout
+        session_deadline = min(self._clock() + session_timeout, deadline)
+        self.session_epoch = self._open_session(session_deadline, ping_interval)
         next_ping = 0.0
         while self._clock() < deadline:
             now = self._clock()
@@ -209,3 +231,23 @@ class BlockingClient:
                     return e
                 self._inbox.append(e)
         raise CommandTimeout(0, MsgType.PING)
+
+    def _open_session(self, deadline: float, retry_interval: float) -> int:
+        """Send SESSION_OPEN until the SESSION reply arrives; return the epoch.
+
+        Raises CommandTimeout if no SESSION reply arrives before *deadline*
+        (a dead bridge or pre-v3 firmware that does not implement SESSION_OPEN).
+        """
+        next_send = 0.0
+        while self._clock() < deadline:
+            now = self._clock()
+            if now >= next_send:
+                self._ser.write(self.conn.session_open())
+                next_send = now + retry_interval
+            for e in self._service():
+                if isinstance(e, ev.VersionMismatch):
+                    raise ProtocolVersionError(e.got, e.expected)
+                if isinstance(e, ev.SessionOpened):
+                    return e.epoch
+                self._inbox.append(e)
+        raise CommandTimeout(0, MsgType.SESSION_OPEN)

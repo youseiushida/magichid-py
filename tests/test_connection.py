@@ -10,7 +10,7 @@ from core.events import (
     Acknowledged, CapsReceived, FrameError, HostEventReceived, LogReceived,
     NackUnmatched, Rejected, ReportCap, StatusReceived, VersionMismatch,
 )
-from core.wire import MsgType, StatusFlag
+from core.wire import MsgType, StatusFlag, PROTO_VERSION
 
 
 class FakeClock:
@@ -62,9 +62,9 @@ def test_ping_returns_frame_not_tracked():
 # -- receive: events --------------------------------------------------------
 def test_status_event():
     c = Connection()
-    [s] = c.receive_bytes(df(MsgType.STATUS, bytes([0x05, 2])))
+    [s] = c.receive_bytes(df(MsgType.STATUS, bytes([0x05, PROTO_VERSION])))
     assert isinstance(s, StatusReceived) and s.mounted and s.ready
-    assert s.proto_version == 2
+    assert s.proto_version == PROTO_VERSION
 
 
 def test_ack_clears_inflight():
@@ -123,7 +123,7 @@ def test_version_mismatch_once():
 # -- incremental framing ----------------------------------------------------
 def test_partial_reassembly():
     c = Connection()
-    frame = df(MsgType.STATUS, bytes([0x05, 2]))
+    frame = df(MsgType.STATUS, bytes([0x05, PROTO_VERSION]))
     assert c.receive_bytes(frame[:3]) == []
     [s] = c.receive_bytes(frame[3:])
     assert isinstance(s, StatusReceived)

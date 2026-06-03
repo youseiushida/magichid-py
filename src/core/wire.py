@@ -4,7 +4,7 @@ These are not design choices; they are the contract.
 
 from __future__ import annotations
 
-PROTO_VERSION = 2
+PROTO_VERSION = 3
 MAX_PAYLOAD = 192
 HID_MAX_PAYLOAD = 63
 DEDUP_WINDOW = 16
@@ -18,12 +18,14 @@ class MsgType:
     GET_CAPS = 0x04
     SET_IDENTITY = 0x05
     SET_FEATURE = 0x06
+    SESSION_OPEN = 0x07
     STATUS = 0x81
     ACK = 0x82
     NACK = 0x83
     HOST_EVENT = 0x84
     LOG = 0x85
     CAPS = 0x86
+    SESSION = 0x87
 
 
 class StatusFlag:

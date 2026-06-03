@@ -34,6 +34,16 @@ class StatusReceived(Event):
 
 
 @dataclass(frozen=True)
+class SessionOpened(Event):
+    """Reply to SESSION_OPEN: the device-minted epoch for this operator session.
+
+    The device cleared its SEQ dedup window when it minted this epoch, so the
+    client may safely restart its SEQ counter at 1 for the new session.
+    """
+    epoch: int
+
+
+@dataclass(frozen=True)
 class Acknowledged(Event):
     seq: int
 

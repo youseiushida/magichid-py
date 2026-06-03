@@ -11,7 +11,7 @@ from core.wire import MsgType, NackReason, StatusFlag
 class FakeDevice:
     """Serial-like transport: ``read`` / ``write`` / ``in_waiting`` / ``close``."""
 
-    def __init__(self, *, proto_version: int = 2,
+    def __init__(self, *, proto_version: int = 3,
                  flags: int = StatusFlag.MOUNTED | StatusFlag.READY,
                  caps_payload: bytes = b"", timeout: float = 0.05):
         self.timeout = timeout; self.proto_version = proto_version
@@ -23,6 +23,9 @@ class FakeDevice:
         self.nack_seqs: set[int] = set()
         self.drop_first_ack = False
         self._acked: set[int] = set()
+        self.epoch = 0                      # device-minted, bumped per SESSION_OPEN
+        self.session_opens = 0              # how many SESSION_OPEN frames were received
+        self.support_session = True         # set False to emulate a v2 device (no SESSION reply)
         self.closed = False
 
     @property
@@ -75,6 +78,15 @@ class FakeDevice:
         self.received.append((t, s, bytes(p)))
         if t == MsgType.PING:
             self._enqueue(self._status())
+        elif t == MsgType.SESSION_OPEN:
+            # Mint a fresh epoch and clear our dedup state; reply SESSION[epoch:4 LE].
+            self.session_opens += 1
+            if not self.support_session:
+                return                       # emulate a v2 device: no SESSION reply
+            self.epoch += 1
+            self._acked.clear()              # the dedup window is per-session
+            self._enqueue(build_frame(MsgType.SESSION, 0,
+                                       self.epoch.to_bytes(4, "little")))
         elif t == MsgType.GET_CAPS:
             self._enqueue(build_frame(MsgType.CAPS, s, self.caps_payload))
         elif t in (MsgType.SEND_REPORT, MsgType.RELEASE_ALL, MsgType.SET_FEATURE):

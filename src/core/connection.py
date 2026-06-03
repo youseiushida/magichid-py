@@ -85,6 +85,17 @@ class Connection:
         seq = self._next_seq()
         return build_frame(MsgType.PING, seq, b"")
 
+    def session_open(self) -> bytes:
+        """Fire-and-forget SESSION_OPEN (no SEQ tracking; like ping).
+
+        Asks the device to mint a fresh epoch and clear its per-session SEQ
+        dedup window. Safe to retransmit: each open is idempotent (it just
+        re-clears the window and re-mints), so the handshake can resend it
+        until the SESSION reply arrives.
+        """
+        seq = self._next_seq()
+        return build_frame(MsgType.SESSION_OPEN, seq, b"")
+
     # -- bytes -> events ---------------------------------------------------- #
     def receive_bytes(self, data: bytes) -> list[ev.Event]:
         if not data:
@@ -117,6 +128,12 @@ class Connection:
                 if st.proto_version != self._target_version:
                     out.append(ev.VersionMismatch(st.proto_version, self._target_version))
             return out
+
+        # -- SESSION (reply to SESSION_OPEN) — device-minted epoch, 4 LE bytes --
+        if type_ == MsgType.SESSION and len(payload) >= 4:
+            epoch = int.from_bytes(payload[:4], "little")
+            self._pending.pop(seq, None)
+            return [ev.SessionOpened(epoch=epoch)]
 
         # -- ACK / NACK (resolve pending requests) --
         # Firmware encodes the acked/rejected seq in the frame SEQ field, not the payload.
