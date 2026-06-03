@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import time
 
 from core.reports import ReportTable
 from hid.horipad import Horipad, HoripadButton, HoripadDpad
@@ -22,6 +23,16 @@ def register(sub: argparse._SubParsersAction) -> None:
     pr.add_argument("--button", action="append", required=True, dest="buttons",
                     choices=_BUTTON_CHOICES, metavar="BUTTON",
                     help=f"Button to hold (repeatable). Valid: {{{', '.join(_BUTTON_CHOICES)}}}")
+
+    # hold
+    h = sub2.add_parser("hold", help="Hold one or more buttons for a duration")
+    h.add_argument("--button", action="append", required=True, dest="buttons",
+                   choices=_BUTTON_CHOICES, metavar="BUTTON",
+                   help=f"Button to hold (repeatable). Valid: {{{', '.join(_BUTTON_CHOICES)}}}")
+    h.add_argument("--duration-ms", type=float, default=1000.0,
+                   help="Hold duration in milliseconds (default: 1000)")
+    h.add_argument("--interval-ms", type=float, default=100.0,
+                   help="Refresh interval in milliseconds (default: 100; must be < watchdog)")
 
     # release
     r = sub2.add_parser("release", help="Release a held button")
@@ -67,6 +78,24 @@ def run(args: argparse.Namespace, client) -> None:
         getattr(pad, args.action)(*buttons)
         _output({"action": args.action, "buttons": [b.name for b in buttons]}, args.json)
 
+    elif args.action == "hold":
+        if args.duration_ms < 0:
+            _exit(2, "--duration-ms must be >= 0")
+        if args.interval_ms <= 0:
+            _exit(2, "--interval-ms must be > 0")
+        buttons = [HoripadButton[b.upper()] for b in args.buttons]
+        pad.release_all()
+        time.sleep(0.1)
+        pad.press(*buttons)
+        _hold_for(pad, args.duration_ms, args.interval_ms)
+        pad.release(*buttons)
+        _output({
+            "action": "hold",
+            "buttons": [b.name for b in buttons],
+            "duration_ms": args.duration_ms,
+            "interval_ms": args.interval_ms,
+        }, args.json)
+
     elif args.action == "dpad":
         direction = HoripadDpad[args.direction.upper()]
         pad.set_dpad(direction)
@@ -89,3 +118,13 @@ def run(args: argparse.Namespace, client) -> None:
     elif args.action == "release-all":
         pad.release_all()
         _output({"action": "release-all"}, args.json)
+
+
+def _hold_for(pad: Horipad, duration_ms: float, interval_ms: float) -> None:
+    remaining = duration_ms
+    while remaining > 0:
+        chunk = min(remaining, interval_ms)
+        time.sleep(chunk / 1000.0)
+        remaining -= chunk
+        if remaining > 0:
+            pad.resend()

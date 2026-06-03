@@ -163,6 +163,11 @@ class Horipad:
         self._dirty = True
         self._flush()
 
+    def resend(self) -> None:
+        """Force-send the current full controller state."""
+        self._dirty = True
+        self._flush()
+
     def hold(self, *buttons: HoripadButton) -> _HoldGuard:
         """Context manager: hold *buttons* while executing the block.
 

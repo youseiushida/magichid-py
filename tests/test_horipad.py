@@ -246,6 +246,14 @@ def test_release_all_when_empty_still_sends(pad: Horipad, client: _FakeClient) -
     assert client.last[1] == _NEUTRAL
 
 
+def test_resend_forces_current_state(pad: Horipad, client: _FakeClient) -> None:
+    pad.press(HoripadButton.L, HoripadButton.R)
+    n = len(client.calls)
+    pad.resend()
+    assert len(client.calls) == n + 1
+    assert client.last[1][0] == 0x30
+
+
 # ---------------------------------------------------------------------------
 # D-pad
 # ---------------------------------------------------------------------------

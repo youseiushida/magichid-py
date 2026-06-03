@@ -164,6 +164,19 @@ COMMANDS = {
                 },
                 "description": "Press (hold) one or more buttons",
             },
+            "hold": {
+                "flags": {
+                    "--button": {
+                        "type": "enum",
+                        "values": ["y", "b", "a", "x", "l", "r", "zl", "zr",
+                                   "minus", "plus", "l_stick", "r_stick", "home", "capture"],
+                        "repeatable": True, "required": True,
+                    },
+                    "--duration-ms": {"type": "float", "range": [0, None], "default": 1000.0},
+                    "--interval-ms": {"type": "float", "range": [0, None], "default": 100.0},
+                },
+                "description": "Hold one or more buttons for a duration, refreshing before the watchdog",
+            },
             "release": {
                 "flags": {
                     "--button": {
@@ -218,6 +231,24 @@ COMMANDS = {
             "release-all": {
                 "flags": {},
                 "description": "Release all buttons, centre sticks and dpad",
+            },
+        },
+    },
+    "identity": {
+        "description": "Persist USB identity/profile and reboot the device",
+        "actions": {
+            "set": {
+                "flags": {
+                    "--profile": {
+                        "type": "enum",
+                        "values": ["universal", "horipad"],
+                        "required": True,
+                    },
+                    "--vid": {"type": "u16", "default": 0},
+                    "--pid": {"type": "u16", "default": 0},
+                    "--bcd": {"type": "u16", "default": 0},
+                },
+                "description": "Send SET_IDENTITY. 0 VID/PID/bcd keeps the profile default.",
             },
         },
     },

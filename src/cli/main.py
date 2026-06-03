@@ -17,7 +17,9 @@ from core.io.blocking import BlockingClient, BlockingError, CommandTimeout
 from core.reports import ReportTable
 from core.wire import MsgType, StatusFlag
 
-from . import _mouse, _keyboard, _digitizer, _unicode, _soc, _horipad, _context
+from . import (
+    _mouse, _keyboard, _digitizer, _unicode, _soc, _horipad, _identity, _context,
+)
 from ._common import output as _output, exit_fail as _exit
 
 # ---------------------------------------------------------------------------
@@ -31,6 +33,7 @@ _DEVICE_MODULES = {
     "unicode": _unicode,
     "soc": _soc,
     "horipad": _horipad,
+    "identity": _identity,
 }
 
 
