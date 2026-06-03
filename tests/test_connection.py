@@ -70,20 +70,20 @@ def test_status_event():
 def test_ack_clears_inflight():
     c = Connection()
     seq, _ = c.send(MsgType.SEND_REPORT, b"", reliable=True)
-    [a] = c.receive_bytes(df(MsgType.ACK, bytes([seq])))
+    [a] = c.receive_bytes(build_frame(MsgType.ACK, seq, b""))
     assert isinstance(a, Acknowledged) and a.seq == seq and not c.inflight
 
 
 def test_nack_resolves():
     c = Connection()
     seq, _ = c.send(MsgType.SEND_REPORT, b"", reliable=True)
-    [r] = c.receive_bytes(df(MsgType.NACK, bytes([seq, 3])))
+    [r] = c.receive_bytes(build_frame(MsgType.NACK, seq, bytes([3])))
     assert isinstance(r, Rejected) and r.reason_name == "UNKNOWN_ID"
 
 
 def test_nack_seq0_unmatched():
     c = Connection()
-    [u] = c.receive_bytes(df(MsgType.NACK, bytes([0, 1])))
+    [u] = c.receive_bytes(build_frame(MsgType.NACK, 0, bytes([1])))
     assert isinstance(u, NackUnmatched) and u.reason_name == "BAD_CRC"
 
 
@@ -162,7 +162,7 @@ def test_ack_cancels_retransmit():
     clock = FakeClock()
     c = Connection(clock=clock, ack_timeout=0.2)
     seq, _ = c.send(MsgType.SEND_REPORT, b"", reliable=True)
-    c.receive_bytes(df(MsgType.ACK, bytes([seq])))
+    c.receive_bytes(build_frame(MsgType.ACK, seq, b""))
     clock.advance(10.0)
     t = c.check_timeouts()
     assert t.retransmit == () and t.failed == ()

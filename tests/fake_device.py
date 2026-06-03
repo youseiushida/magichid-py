@@ -79,10 +79,11 @@ class FakeDevice:
             self._enqueue(build_frame(MsgType.CAPS, s, self.caps_payload))
         elif t in (MsgType.SEND_REPORT, MsgType.RELEASE_ALL, MsgType.SET_FEATURE):
             if s in self.nack_seqs:
-                self._enqueue(build_frame(MsgType.NACK, 0, bytes([s, NackReason.BAD_LEN])))
+                # Firmware carries the rejected seq in the frame SEQ field; payload = [reason].
+                self._enqueue(build_frame(MsgType.NACK, s, bytes([NackReason.BAD_LEN])))
                 return
             if self.drop_first_ack and s not in self._acked:
                 self._acked.add(s); return
-            self._enqueue(build_frame(MsgType.ACK, 0, bytes([s])))
+            self._enqueue(build_frame(MsgType.ACK, s, b""))
         elif t == MsgType.SET_IDENTITY:
-            self._enqueue(build_frame(MsgType.ACK, 0, bytes([s])))
+            self._enqueue(build_frame(MsgType.ACK, s, b""))

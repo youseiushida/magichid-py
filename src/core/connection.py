@@ -119,16 +119,18 @@ class Connection:
             return out
 
         # -- ACK / NACK (resolve pending requests) --
-        if type_ == MsgType.ACK and len(payload) >= 1:
-            self._pending.pop(payload[0], None)
-            return [ev.Acknowledged(seq=payload[0])]
+        # Firmware encodes the acked/rejected seq in the frame SEQ field, not the payload.
+        if type_ == MsgType.ACK:
+            self._pending.pop(seq, None)
+            return [ev.Acknowledged(seq=seq)]
 
-        if type_ == MsgType.NACK and len(payload) >= 2:
-            nseq = payload[0]
-            if nseq == 0:
-                return [ev.NackUnmatched(reason=payload[1])]
-            self._pending.pop(nseq, None)
-            return [ev.Rejected(seq=nseq, reason=payload[1])]
+        if type_ == MsgType.NACK:
+            if seq == 0:
+                reason = payload[0] if len(payload) >= 1 else 0
+                return [ev.NackUnmatched(reason=reason)]
+            self._pending.pop(seq, None)
+            reason = payload[0] if len(payload) >= 1 else 0
+            return [ev.Rejected(seq=seq, reason=reason)]
 
         # -- CAPS (reply to GET_CAPS, carries the request SEQ) --
         if type_ == MsgType.CAPS and len(payload) >= 5:

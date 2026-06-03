@@ -11,7 +11,7 @@ from typing import Optional
 
 from .. import events as ev
 from ..connection import Connection
-from ..wire import MsgType, StatusFlag
+from ..wire import MsgType, NackReason, StatusFlag
 
 try:
     import serial as _serial
@@ -45,8 +45,9 @@ class BlockingClient:
     def __init__(self, port: Optional[str] = None, *,
                  baudrate: int = 1_000_000, timeout: float = 0.1,
                  connection: Optional[Connection] = None,
-                 transport=None, clock=_time.monotonic):
+                 transport=None, clock=_time.monotonic, sleep=_time.sleep):
         self._clock = clock
+        self._sleep = sleep
         self.conn = connection or Connection(clock=clock)
         self._inbox: list[ev.Event] = []
         self._failed: set[int] = set()
@@ -120,8 +121,27 @@ class BlockingClient:
         return buf
 
     # -- request / handshake ------------------------------------------------ #
-    def request(self, type_: int, payload: bytes = b"", *, timeout: float = 2.0) -> ev.Acknowledged:
-        """Send reliably and block until the matching ACK (or error)."""
+    def request(self, type_: int, payload: bytes = b"", *, reliable: bool = True,
+                timeout: float = 2.0, not_ready_retries: int = 20) -> ev.Acknowledged:
+        """Send reliably and block until the matching ACK (or error).
+
+        A NOT_READY NACK means the device's USB IN endpoint had not yet been
+        polled by the host (it polls every ``HID_POLL_MS``). That is transient,
+        so we briefly back off and resend the same report rather than failing —
+        otherwise back-to-back reports (e.g. ``keyboard type``) silently drop.
+        """
+        attempts = not_ready_retries
+        while True:
+            try:
+                return self._request_once(type_, payload, timeout=timeout)
+            except BlockingError as exc:
+                if getattr(exc, "reason", None) == NackReason.NOT_READY and attempts > 0:
+                    attempts -= 1
+                    self._sleep(0.004)   # ~2x HID_POLL_MS, let the host poll once
+                    continue
+                raise
+
+    def _request_once(self, type_: int, payload: bytes, *, timeout: float) -> ev.Acknowledged:
         deadline = self._clock() + timeout
         while True:
             r = self.conn.send(type_, payload, reliable=True)
@@ -140,7 +160,9 @@ class BlockingClient:
                 if isinstance(e, ev.Acknowledged) and e.seq == seq:
                     return e
                 if isinstance(e, ev.Rejected) and e.seq == seq:
-                    raise BlockingError(f"rejected seq={seq} reason={e.reason_name}")
+                    err = BlockingError(f"rejected seq={seq} reason={e.reason_name}")
+                    err.reason = e.reason
+                    raise err
                 self._inbox.append(e)
             if seq in self._failed:
                 self._failed.discard(seq)

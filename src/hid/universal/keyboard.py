@@ -205,6 +205,7 @@ class Keyboard:
         """Release every held key and send an empty report."""
         self._modifier = 0
         self._keys.clear()
+        self._dirty = True   # always emit the all-zero report, even from idle
         self._flush()
 
     def type_text(self, text: str) -> int:
@@ -212,6 +213,13 @@ class Keyboard:
 
         Returns the number of characters typed.  Unsupported characters are
         skipped with a message to stderr.
+
+        Delivery is deterministic, not timing-based: every report is sent
+        reliably, and the device NACKs ``NOT_READY`` until its USB IN endpoint
+        has been polled by the host (i.e. the previous report was delivered).
+        The transport retries on NOT_READY, so a release can never overtake its
+        press and no keystroke — not even a repeated character — is dropped,
+        regardless of how fast reports are issued.
         """
         count = 0
         import sys as _sys
@@ -224,10 +232,12 @@ class Keyboard:
             shift, kc = entry
             if shift:
                 self.press(Keycode.LEFT_SHIFT)
-                self.tap(kc)
+                self.press(kc)
+                self.release(kc)
                 self.release(Keycode.LEFT_SHIFT)
             else:
-                self.tap(kc)
+                self.press(kc)
+                self.release(kc)
             count += 1
         return count
 
